@@ -1,0 +1,121 @@
+import pandas as pd
+from pathlib import Path
+
+# ==========================================
+# SMART FACILITY ENERGY ANALYSIS
+# AGENTIC FACILITYOPS AI - MILESTONE 1
+# ==========================================
+
+ROOT = Path(r"C:\Users\Madhumitha K\Agentic_FacilityOps_AI")
+
+DATA_FILE = ROOT / "data" / "energy_consumption.csv"
+TEST_FILE = ROOT / "data" / "anomaly_test.csv"
+
+
+# 1. DATASET LOADING
+print("\n===== SMART FACILITY ENERGY ANALYSIS =====")
+
+df = pd.read_csv(DATA_FILE)
+
+print("\n1. DATASET LOADED")
+print(df.head())
+
+
+# 2. DATA CLEANING
+df["energy_kwh"] = pd.to_numeric(
+    df["energy_kwh"], errors="coerce"
+)
+
+df = df.dropna(subset=["energy_kwh"])
+
+print("\n2. DATA CLEANING COMPLETED")
+
+
+# 3. ENERGY ANALYSIS
+average = df["energy_kwh"].mean()
+std = df["energy_kwh"].std()
+threshold = average + std
+
+print("\n3. ENERGY ANALYSIS")
+print(f"Average Usage: {average:.2f}")
+print(f"Standard Deviation: {std:.2f}")
+print(f"Threshold: {threshold:.2f}")
+
+
+# 4. ANOMALY DETECTION
+df["status"] = df["energy_kwh"].apply(
+    lambda x: "Anomaly" if x > threshold else "Normal"
+)
+
+normal_count = (df["status"] == "Normal").sum()
+anomaly_count = (df["status"] == "Anomaly").sum()
+
+print("\n4. ANOMALY DETECTION")
+print(f"Total Readings: {len(df)}")
+print(f"Normal Readings: {normal_count}")
+print(f"Anomaly Readings: {anomaly_count}")
+
+print("\nAnomaly Records:")
+print(df[df["status"] == "Anomaly"])
+
+
+# 5. RECOMMENDATIONS
+print("\n5. ENERGY SAVING RECOMMENDATIONS")
+
+recommendations = [
+    "Check equipment operating on high-consumption days.",
+    "Switch off unused lights and electrical equipment.",
+    "Monitor HVAC usage and maintain suitable temperature settings.",
+    "Compare daily energy usage to identify unusual increases."
+]
+
+for item in recommendations:
+    print("-", item)
+
+
+# 6. MODEL TEST
+print("\n6. MODEL TEST RESULT")
+
+if TEST_FILE.exists():
+    test_df = pd.read_csv(TEST_FILE)
+
+    test_df["energy_kwh"] = pd.to_numeric(
+        test_df["energy_kwh"], errors="coerce"
+    )
+
+    test_df = test_df.dropna(subset=["energy_kwh"])
+
+    test_df["predicted"] = (
+        test_df["energy_kwh"] > threshold
+    ).astype(int)
+
+    print(test_df.head())
+
+    if "actual" in test_df.columns:
+        accuracy = (
+            test_df["predicted"] == test_df["actual"]
+        ).mean() * 100
+
+        print(f"Accuracy: {accuracy:.2f}%")
+    else:
+        print("Prediction completed.")
+        print("Actual labels are not available.")
+else:
+    print("Test dataset not found.")
+
+
+# 7. FINAL RESULT
+print("\n7. FINAL RESULT")
+
+print(df[["date", "energy_kwh", "status"]].head(10))
+
+
+# 8. SUMMARY
+print("\n===== FINAL SUMMARY =====")
+
+print(f"Average Energy Usage: {average:.2f} kWh")
+print(f"Anomaly Threshold: {threshold:.2f} kWh")
+print(f"Normal Readings: {normal_count}")
+print(f"Anomaly Readings: {anomaly_count}")
+
+print("\n===== ANALYSIS COMPLETED =====")
